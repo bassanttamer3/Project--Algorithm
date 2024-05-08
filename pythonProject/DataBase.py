@@ -1,56 +1,121 @@
-import csv
+import pandas as pd
 
-data = []
-with open('student_db.csv.csv', newline='') as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        data.append(Student(int(row['id']))
-
-class Student:
+# Defining the column names
+column_names = ['id', 'name', 'nationality', 'city',
+                'latitude', 'longitude', 'gender', 'ethnic.group', 'age',
+                'english.grade', 'math.grade', 'sciences.grade', 'language.grade', 'portfolio.rating',
+                'coverletter.rating', 'refletter.rating']
 
 
-    def __init__(self, id, name):
-        self.id = id
+# Defining data filtering function
+def data_filtering(file_location):
+    # Read the CSV file into a DataFrame
+    df = pd.read_csv(file_location)
+    return df
 
-    @staticmethod
-    def quick_sort(data):
-        if len(data) <= 1:
-            return data
-        pivot = data[len(data) // 2].id
-        left = [x for x in data if x.id < pivot]
-        middle = [x for x in data if x.id == pivot]
-        right = [x for x in data if x.id > pivot]
-        return Student.quick_sort(left) + middle + Student.quick_sort(right)
 
-    @staticmethod
-    def merge_sort(data):
-        if len(data) <= 1:
-            return data
-        mid = len(data) // 2
-        left = Student.merge_sort(data[:mid])
-        right = Student.merge_sort(data[mid:])
-        return Student.merge(left, right)
+# Sorting algorithms
+def quicksort(arr, key_func):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if key_func(x) < key_func(pivot)]
+    middle = [x for x in arr if key_func(x) == key_func(pivot)]
+    right = [x for x in arr if key_func(x) > key_func(pivot)]
+    return quicksort(left, key_func) + middle + quicksort(right, key_func)
 
-    @staticmethod
-    def merge(left, right):
-        result = []
-        left_idx, right_idx = 0, 0
-        while left_idx < len(left) and right_idx < len(right):
-            if left[left_idx].id < right[right_idx].id:
-                result.append(left[left_idx])
-                left_idx += 1
-            else:
-                result.append(right[right_idx])
-                right_idx += 1
-        result.extend(left[left_idx:])
-        result.extend(right[right_idx:])
-        return result
 
-    @staticmethod
-    def bubble_sort(data):
-        n = len(data)
-        for i in range(n):
-            for j in range(0, n - i - 1):
-                if data[j].id > data[j + 1].id:
-                    data[j], data[j + 1] = data[j + 1], data[j]
+def shell_sort(arr, key_func):
+    array_length = len(arr)
+    gap = array_length // 2
+    while gap > 0:
+        for i in range(gap, array_length):
+            temp = arr[i]
+            j = i
+            while j >= gap and key_func(arr[j - gap]) > key_func(temp):
+                arr[j] = arr[j - gap]
+                j -= gap
+            arr[j] = temp
+        gap //= 2
+    return arr
+
+
+def merge(left, right, key_func):
+    sorted_res = [None] * (len(left) + len(right))
+    i = j = k = 0
+    while i < len(left) and j < len(right):
+        if key_func(left[i]) <= key_func(right[j]):
+            sorted_res[k] = left[i]
+            i += 1
+        else:
+            sorted_res[k] = right[j]
+            j += 1
+        k += 1
+    while i < len(left):
+        sorted_res[k] = left[i]
+        i += 1
+        k += 1
+    while j < len(right):
+        sorted_res[k] = right[j]
+        j += 1
+        k += 1
+
+    return sorted_res
+
+
+def merge_sort(data, key_func):
+    if len(data) <= 1:
         return data
+    mid = len(data) // 2  # Mid value
+    left = merge_sort(data[:mid], key_func)
+    right = merge_sort(data[mid:], key_func)
+    return merge(left, right, key_func)
+
+
+# Sorting DataFrame function
+def sort_dataframe(df, key_func, algorithms=('quicksort', 'shell_sort', 'merge_sort')):
+    # Convert DataFrame to list of dictionaries
+    data = df.to_dict('records')
+
+    sorted_dfs = {}  # Dictionary to store sorted DataFrames
+
+    # Apply each sorting algorithm
+    for algorithm in algorithms:
+        if algorithm == 'quicksort':
+            sorted_data = quicksort(data, key_func)
+        elif algorithm == 'shell_sort':
+            sorted_data = shell_sort(data, key_func)
+        else:
+            sorted_data = merge_sort(data, key_func)
+
+        # Convert sorted list of dictionaries back to DataFrame
+        sorted_df = pd.DataFrame(sorted_data, columns=column_names)
+
+        # Store sorted DataFrame in dictionary
+        sorted_dfs[algorithm] = sorted_df
+
+    return sorted_dfs
+
+
+# Main function
+def main():
+    # File location
+    file_location = "student_db.csv"
+
+    # Defining the key function for sorting by math.grade
+    key_func_math_grade = lambda x: x['math.grade']
+
+    # Filtering data
+    df = data_filtering(file_location)
+
+    # Sorting DataFrame using multiple algorithms
+    sorted_dfs = sort_dataframe(df, key_func_math_grade)
+
+    # Printing the sorted DataFrames
+    for algorithm, sorted_df in sorted_dfs.items():
+        print(f"Sorted DataFrame using {algorithm}:")
+        print(sorted_df.head())
+
+
+if __name__ == "__main__":
+    main()
