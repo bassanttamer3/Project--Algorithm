@@ -84,7 +84,7 @@ def bubble_sort(arr, key_func):
 
 
 # Sorting DataFrame function
-# Sorting DataFrame function
+
 def sort_dataframe(df, key_func, algorithms=('quicksort', 'shell_sort', 'merge_sort', 'bubble_sort')):
     # Convert DataFrame to list of dictionaries
     data = df.to_dict('records')
@@ -136,7 +136,7 @@ def main():
     df = data_filtering(file_location)
 
     # Sorting DataFrame using multiple algorithms
-    algorithms = ('quicksort', 'shell_sort', 'merge_sort', 'bubble_sort')
+    algorithms = ('quicksort', 'merge_sort', 'bubble_sort')
     for algorithm in algorithms:
         sorted_df, execution_time = timeit(sort_dataframe, df, key_func_math_grade, (algorithm,))
         print(f"Sorted DataFrame using {algorithm}:")
